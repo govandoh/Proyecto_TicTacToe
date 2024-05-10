@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from src.game_controller import TicTacToeController
-
+from game_controller import TicTacToeController
 
 
 class TicTacToeGUI:

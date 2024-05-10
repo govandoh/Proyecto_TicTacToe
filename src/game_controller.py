@@ -1,5 +1,4 @@
-from src.logic_model import evaluate, minimax, find_best_move
-from src.gui_view import TicTacToeGUI
+from logic_model import evaluate, minimax, find_best_move
 
 class TicTacToeController:
     def __init__(self):
@@ -11,7 +10,6 @@ class TicTacToeController:
         self.turn_counter = 0
         self.user_symbol = None
         self.computer_symbol = None
-        self.gui = TicTacToeGUI(self)
         
         
         
