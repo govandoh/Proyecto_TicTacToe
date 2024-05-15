@@ -2,6 +2,7 @@ from logic_model import evaluate, minimax, find_best_move
 from graphviz import Digraph
 
 import json
+import copy
 
     
 class TicTacToeController:
@@ -20,7 +21,7 @@ class TicTacToeController:
         
     def store_game_moves(self, current, moves, weights, best_move, best_score):
         move_history = {
-            "current_board": current,
+            "current_board": copy.deepcopy(current),  
             "possible_moves": moves,
             "weights": weights,
             "best_move_pc":best_move,
@@ -30,11 +31,13 @@ class TicTacToeController:
         
         
         
-    def print_game_history(self, move_history):
-        json_data = json.dumps(move_history, indent=4)
-    
+    def print_game_history(self):
         print("Historial de la partida:")
-        print(json_data)
+        for history in self.move_history.items():
+            #print(f"Turno {turn}:")
+            json_data = json.dumps(history, indent=4)
+            print(json_data)
+
         
         
     def select_user_symbol(self, symbol):
@@ -56,7 +59,6 @@ class TicTacToeController:
             return
         # Realizar la jugada del usuario
         self.board[row][col] = self.user_symbol
-        self.turn_counter += 1
     # Verificar si el juego ha terminado
         self.check_game_status()
         
@@ -67,6 +69,7 @@ class TicTacToeController:
             self.turn_counter += 1
             if paths:
                 print("Ruta de la computadora:")
+                #current = self.board()
                 temp_board = [row[:] for row in self.board]  # Copia del tablero actual
                 for move in paths:
                     temp_board[move[0]][move[0]] = 1 if len(paths) % 2 == 0 else -1  # Simular el movimiento en la copia del tablero
@@ -74,12 +77,14 @@ class TicTacToeController:
                     self.moves.append([move[0],move[1]])
                     self.weigths.append(self.user_symbol)
             else:
-                print("La computadora no tomó ninguna ruta alternativa.")
+                print("La computadora no tomó ninguna ruta alternativa.")           
             
-            moves_history = self.store_game_moves(self.board, self.moves, self.weigths, best_move, best_score)
-            self.print_game_history(moves_history)
+            moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), best_move, best_score)
+            self.move_history[f"jugada_desencadenante: {self.turn_counter} "] = moves_history  # Aquí se crea un nuevo registro en el diccionario
+            self.print_game_history()  # Modificado aquí
             self.moves.clear()
             self.weigths.clear()
+          
             
             self.board[best_move[0]][best_move[1]] = self.computer_symbol
             print("La computadora ha elegido la casilla:", best_move)
@@ -102,8 +107,25 @@ class TicTacToeController:
             elif score == 0:
                 print("¡Empate!")
                 
+            self.print_all_turns()
         else:
             # El juego continúa, actualizar la interfaz
             #print(self.board)
             print("")
             
+    def print_all_turns(self):
+        for turn, history in self.move_history.items():
+            print(f"Turno {turn}:")
+            print("Tablero actual:")
+            for row in history["current_board"]:
+                print(row)
+            print("Movimientos posibles:")
+            for move in history["possible_moves"]:
+                print(move)
+            print("Pesos:")
+            print(history["weights"])
+            print("Mejor movimiento de la PC:")
+            print(history["best_move_pc"])
+            print("Mejor puntuación de la PC:")
+            print(history["best_score_move_pc"])
+            print("\n")
