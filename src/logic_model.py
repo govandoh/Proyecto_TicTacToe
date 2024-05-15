@@ -93,7 +93,7 @@ def find_best_move(board, path=[]):
     best_move = None
     alpha = float('-inf')
     beta = float('inf')
-    best_path = []
+    paths = []
     for i in range(3):
         for j in range(3):
             if board[i][j] == 0:
@@ -107,6 +107,6 @@ def find_best_move(board, path=[]):
                     if score > best_score:
                         best_score = score
                         best_move = (i, j)
-                        best_path = path + current_path
-    return best_move, best_score, best_path
+                        paths = path + current_path
+    return best_move, best_score, paths
 

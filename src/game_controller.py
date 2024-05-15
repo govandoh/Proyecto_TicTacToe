@@ -1,5 +1,9 @@
 from logic_model import evaluate, minimax, find_best_move
+from graphviz import Digraph
 
+import json
+
+    
 class TicTacToeController:
     def __init__(self):
         self.board = [
@@ -10,7 +14,27 @@ class TicTacToeController:
         self.turn_counter = 0
         self.user_symbol = None
         self.computer_symbol = None
-        self.min_paths = []
+        self.move_history = {} 
+        self.moves = []
+        self.weigths = []
+        
+    def store_game_moves(self, current, moves, weights, best_move, best_score):
+        move_history = {
+            "current_board": current,
+            "possible_moves": moves,
+            "weights": weights,
+            "best_move_pc":best_move,
+            "best_score_move_pc": best_score
+        }
+        return move_history
+        
+        
+        
+    def print_game_history(self, move_history):
+        json_data = json.dumps(move_history, indent=4)
+    
+        print("Historial de la partida:")
+        print(json_data)
         
         
     def select_user_symbol(self, symbol):
@@ -37,22 +61,29 @@ class TicTacToeController:
         self.check_game_status()
         
     def make_computer_move(self):
-        best_move, best_score, best_path = find_best_move(self.board)
+        best_move, best_score, paths = find_best_move(self.board)
+        print(paths)
         if best_move:
             self.turn_counter += 1
-            if best_path:
+            if paths:
                 print("Ruta de la computadora:")
                 temp_board = [row[:] for row in self.board]  # Copia del tablero actual
-                for move in best_path:
-                    temp_board[move[0]][move[0]] = 1 if len(best_path) % 2 == 0 else -1  # Simular el movimiento en la copia del tablero
+                for move in paths:
+                    temp_board[move[0]][move[0]] = 1 if len(paths) % 2 == 0 else -1  # Simular el movimiento en la copia del tablero
                     print("Fila:", move[0], "Columna:", move[1], "Puntaje:", evaluate(temp_board))  # Evaluar la copia del tablero
-                    self.min_paths.append(move)
+                    self.moves.append([move[0],move[1]])
+                    self.weigths.append(self.user_symbol)
             else:
                 print("La computadora no tomó ninguna ruta alternativa.")
+            
+            moves_history = self.store_game_moves(self.board, self.moves, self.weigths, best_move, best_score)
+            self.print_game_history(moves_history)
+            self.moves.clear()
+            self.weigths.clear()
+            
             self.board[best_move[0]][best_move[1]] = self.computer_symbol
             print("La computadora ha elegido la casilla:", best_move)
             print("Peso de la ruta seleccionada:", best_score)
-            print(self.min_paths)
             # Verificar si el juego ha terminado
             self.check_game_status()
         else:

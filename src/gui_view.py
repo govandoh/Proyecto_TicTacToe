@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog
 from game_controller import TicTacToeController
 
-import json
 
 class TicTacToeGUI:
     def __init__(self, controller):
