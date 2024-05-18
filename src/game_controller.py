@@ -1,5 +1,5 @@
 from logic_model import evaluate, minimax, find_best_move
-from graphviz import Digraph
+import graphviz
 
 import json
 import copy
@@ -18,6 +18,7 @@ class TicTacToeController:
         self.move_history = {} 
         self.moves = []
         self.weigths = []
+        self.game_over = False
         
     def store_game_moves(self, current, moves, weights, best_move, best_score):
         move_history = {
@@ -54,6 +55,9 @@ class TicTacToeController:
         return True
     
     def make_user_move(self, row, col):
+        if self.game_over:
+            return
+        
         if self.board[row][col] != 0:
             print("¡Casilla ocupada! Intenta de nuevo.")
             return
@@ -63,6 +67,9 @@ class TicTacToeController:
         self.check_game_status()
         
     def make_computer_move(self):
+        if self.game_over:
+            return
+        
         best_move, best_score, paths = find_best_move(self.board)
         print(paths)
         if best_move:
@@ -80,7 +87,7 @@ class TicTacToeController:
                 print("La computadora no tomó ninguna ruta alternativa.")           
             
             moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), best_move, best_score)
-            self.move_history[f"jugada_desencadenante: {self.turn_counter} "] = moves_history  # Aquí se crea un nuevo registro en el diccionario
+            self.move_history[f"{self.turn_counter}"] = moves_history  # Aquí se crea un nuevo registro en el diccionario
             self.print_game_history()  # Modificado aquí
             self.moves.clear()
             self.weigths.clear()
@@ -101,10 +108,13 @@ class TicTacToeController:
         score = evaluate(self.board)
         if score is not None:
             if score == 10:
+                self.game_over = True
                 print("¡La computadora ha ganado!")
             elif score == -10:
+                self.game_over = True
                 print("¡Has ganado Usuario!")
             elif score == 0:
+                self.game_over = True
                 print("¡Empate!")
                 
             self.print_all_turns()
@@ -113,7 +123,7 @@ class TicTacToeController:
             #print(self.board)
             print("")
             
-    def print_all_turns(self):
+    def print_all_turns(self):  
         for turn, history in self.move_history.items():
             print(f"Turno {turn}:")
             print("Tablero actual:")
@@ -129,3 +139,23 @@ class TicTacToeController:
             print("Mejor puntuación de la PC:")
             print(history["best_score_move_pc"])
             print("\n")
+    
+    # def imprimir_diccionario_en_graphviz(self,diccionario,dot, parent_node=None):
+    #     for key, value in diccionario.items():
+    #     # Si la clave es un número, omitir la impresión
+    #         if isinstance(key, int):
+    #             continue
+            
+    #         # Si el valor es un diccionario, recorrerlo recursivamente
+    #         if isinstance(value, dict):
+    #             # Llamar a la función de impresión recursivamente
+    #             self.imprimir_diccionario_en_graphviz(dot, value, key)
+    #             # Si hay un nodo padre, agregar una conexión desde él al nodo hijo
+    #             if parent_node is not None:
+    #                 dot.edge(parent_node, key)
+    #         else:
+    #             # Agregar nodo y conexión para el valor
+    #             dot.node(key, str(value))
+    #             if parent_node is not None:
+    #                 dot.edge(parent_node, key)
+        
