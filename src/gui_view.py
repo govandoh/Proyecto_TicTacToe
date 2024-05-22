@@ -4,11 +4,16 @@ from PIL import Image, ImageTk
 from game_controller import TicTacToeController
 
 class TicTacToeGUI:
-    def __init__(self, controller):
+    def __init__(self, controller, menu_window):
         self.controller = controller
-        self.root = tk.Tk()
+        self.menu_window = menu_window
+        self.root = tk.Toplevel()
         self.root.title("Tic Tac Toe")
         self.user_symbol = "O"
+        
+        self.root.geometry('300x370+650+300')
+        self.root.overrideredirect(True)
+
         
         messagebox.showinfo("Simbolos", "Maquina = X \n Usuario = O")
         self.controller.select_user_symbol(self.user_symbol)
@@ -26,6 +31,9 @@ class TicTacToeGUI:
         # Agregar el botón "Salir" al tablero
         self.quit_button = ttk.Button(self.root, text="Salir", command=self.quit_game, style="Rounded.TButton")
         self.quit_button.grid(row=3, column=1, columnspan=3, pady=10)
+        
+    
+        
 
     def on_button_click(self, row, col):
         if self.controller.board[row][col] == 0:  
@@ -67,6 +75,7 @@ class TicTacToeGUI:
     # Función para salir del juego y regresar al menú principal
     def quit_game(self):
         self.root.destroy()  # Cerrar la ventana del juego
+        self.menu_window.deiconify()
 
 class MainMenu:
     def __init__(self, root):
@@ -117,7 +126,7 @@ class MainMenu:
         if choice:
             self.root.withdraw()  
             controller = TicTacToeController()  
-            gui = TicTacToeGUI(controller)  
+            gui = TicTacToeGUI(controller,self.root)  
             gui.start()  
 
     def show_winning_history(self):
