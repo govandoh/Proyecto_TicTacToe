@@ -1,8 +1,15 @@
 from logic_model import evaluate, minimax, find_best_move
-import graphviz
+from graphviz import Digraph
 
-import json
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, landscape
+from PIL import Image
+
+
 import copy
+import json
+import os
+import datetime
 
     
 class TicTacToeController:
@@ -19,27 +26,19 @@ class TicTacToeController:
         self.moves = []
         self.weigths = []
         self.game_over = False
+        self.date_format = datetime.datetime.now()
+        self.game_date = self.date_format.strftime("%d-%m-%Y-%H-%M-%S")
+        self.pdf = f"src/resultados/historial_movimientos_aprendizaje_{self.game_date}.pdf"
         
     def store_game_moves(self, current, moves, weights, best_move, best_score):
         move_history = {
             "current_board": copy.deepcopy(current),  
-            "possible_moves": moves,
-            "weights": weights,
+            "moves_to_lose": moves,
+            "weights_to_lose": weights,
             "best_move_pc":best_move,
             "best_score_move_pc": best_score
         }
-        return move_history
-        
-        
-        
-    def print_game_history(self):
-        print("Historial de la partida:")
-        for history in self.move_history.items():
-            #print(f"Turno {turn}:")
-            json_data = json.dumps(history, indent=4)
-            print(json_data)
-
-        
+        return move_history        
         
     def select_user_symbol(self, symbol):
         symbol = symbol.upper()
@@ -65,43 +64,46 @@ class TicTacToeController:
         self.board[row][col] = self.user_symbol
     # Verificar si el juego ha terminado
         self.check_game_status()
+                
         
     def make_computer_move(self):
         if self.game_over:
             return
         
         best_move, best_score, paths = find_best_move(self.board)
-        print(paths)
         if best_move:
             self.turn_counter += 1
             if paths:
-                print("Ruta de la computadora:")
-                #current = self.board()
                 temp_board = [row[:] for row in self.board]  # Copia del tablero actual
                 for move in paths:
                     temp_board[move[0]][move[0]] = 1 if len(paths) % 2 == 0 else -1  # Simular el movimiento en la copia del tablero
-                    print("Fila:", move[0], "Columna:", move[1], "Puntaje:", evaluate(temp_board))  # Evaluar la copia del tablero
                     self.moves.append([move[0],move[1]])
                     self.weigths.append(self.user_symbol)
             else:
-                print("La computadora no tomó ninguna ruta alternativa.")           
-            
+                print("La computadora no tomó ninguna ruta alternativa, toma el mejor score")           
+
+            #Ejecuta y guarda el mejor movimiento
             moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), best_move, best_score)
             self.move_history[f"{self.turn_counter}"] = moves_history  # Aquí se crea un nuevo registro en el diccionario
-            self.print_game_history()  # Modificado aquí
+            
+            #Inserto despues para guardar el tablero desencadenante
+            self.board[best_move[0]][best_move[1]] = self.computer_symbol
+            self.print_game_history()
+            #Limpio listas
             self.moves.clear()
             self.weigths.clear()
-          
-            
-            self.board[best_move[0]][best_move[1]] = self.computer_symbol
-            print("La computadora ha elegido la casilla:", best_move)
-            print("Peso de la ruta seleccionada:", best_score)
             # Verificar si el juego ha terminado
             self.check_game_status()
         else:
-            # No hay movimientos posibles, se considera empate
-            self.check_game_status()
+            print("")
 
+
+    def print_game_history(self):
+        print("Historial de la partida:")
+        for history in self.move_history.items():
+            #print(f"Turno {turn}:")
+            json_data = json.dumps(history, indent=4)
+            print(json_data)
     
     def check_game_status(self):
         # Método para verificar si el juego ha terminado
@@ -109,53 +111,97 @@ class TicTacToeController:
         if score is not None:
             if score == 10:
                 self.game_over = True
-                print("¡La computadora ha ganado!")
+                self.create_report()
             elif score == -10:
                 self.game_over = True
-                print("¡Has ganado Usuario!")
+                self.create_report()
             elif score == 0:
-                self.game_over = True
                 print("¡Empate!")
-                
-            self.print_all_turns()
+                if score == 0:
+                    self.turn_counter = 5
+                    moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), None, None)
+                    self.move_history[f"{self.turn_counter}"] = moves_history  # Aquí se crea un nuevo registro en el diccionario
+                self.game_over = True
+                self.create_report()
+            
         else:
             # El juego continúa, actualizar la interfaz
-            #print(self.board)
             print("")
+        return score
             
-    def print_all_turns(self):  
-        for turn, history in self.move_history.items():
-            print(f"Turno {turn}:")
-            print("Tablero actual:")
-            for row in history["current_board"]:
-                print(row)
-            print("Movimientos posibles:")
-            for move in history["possible_moves"]:
-                print(move)
-            print("Pesos:")
-            print(history["weights"])
-            print("Mejor movimiento de la PC:")
-            print(history["best_move_pc"])
-            print("Mejor puntuación de la PC:")
-            print(history["best_score_move_pc"])
-            print("\n")
+    def create_report(self):
+        self.imprimir_diccionario_en_graphviz(self.move_history)
+        self.combinar_imagenes_en_pdf()
     
-    # def imprimir_diccionario_en_graphviz(self,diccionario,dot, parent_node=None):
-    #     for key, value in diccionario.items():
-    #     # Si la clave es un número, omitir la impresión
-    #         if isinstance(key, int):
-    #             continue
+    def imprimir_diccionario_en_graphviz(self, diccionario, output_dir='output'):
+    # Crear el directorio de salida si no existe
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Contador para los archivos de imagen
+        img_count = 0
+
+        # Recorrer el diccionario
+        for key, value in diccionario.items():
+            # Crear un nuevo objeto Digraph para cada sub-diccionario
+            dot = Digraph()
             
-    #         # Si el valor es un diccionario, recorrerlo recursivamente
-    #         if isinstance(value, dict):
-    #             # Llamar a la función de impresión recursivamente
-    #             self.imprimir_diccionario_en_graphviz(dot, value, key)
-    #             # Si hay un nodo padre, agregar una conexión desde él al nodo hijo
-    #             if parent_node is not None:
-    #                 dot.edge(parent_node, key)
-    #         else:
-    #             # Agregar nodo y conexión para el valor
-    #             dot.node(key, str(value))
-    #             if parent_node is not None:
-    #                 dot.edge(parent_node, key)
-        
+            # Si el valor es un diccionario, recorrerlo también
+            if isinstance(value, dict):
+                for k, v in value.items():
+                    # Si el valor interno es un diccionario, recorrerlo también
+                    if isinstance(v, dict):
+                        for vk, vv in v.items():
+                            # Agregar nodo para la clave interna del valor interno y su valor
+                            dot.node(str(vk), f"{vk}: {vv}")
+                            # Agregar un borde desde la clave interna hasta la clave interna del valor interno
+                            dot.edge(str(k), str(vk))
+                    else:
+                        # Agregar nodo para la clave interna y su valor
+                        dot.node(str(k), f"{k}: {v}")
+                        # Agregar un borde desde la clave hasta la clave interna
+                        dot.edge(str(key), str(k))
+            else:
+                # Agregar nodo para la clave y su valor
+                dot.node(str(key), f"{key}: {value}")
+            
+            dot.attr(size='10,5')  # Puedes ajustar el tamaño según sea necesario
+            dot.attr(rankdir='LR')  # Configurar el gráfico para que sea horizontal
+
+            # Guardar el gráfico en un archivo de imagen
+            img_count += 1
+            file_path = os.path.join(output_dir, f'Detalles_Movimiento_{img_count}')
+            dot.render(file_path, format='png', cleanup=True)
+    
+    def combinar_imagenes_en_pdf(self, output_dir='output'):
+    # Crear un documento PDF
+        c = canvas.Canvas(self.pdf, pagesize=letter)
+
+        # Obtener la lista de archivos de imagen en el directorio de salida
+        img_files = [f for f in os.listdir(output_dir) if f.endswith('.png')]
+        img_files.sort()  # Asegurar que los archivos estén en el orden correcto
+
+        for img_file in img_files:
+            # Abrir la imagen
+            img_path = os.path.join(output_dir, img_file)
+            img = Image.open(img_path)
+            
+            # Ajustar la imagen al tamaño de la página
+            width, height = letter
+            img_width, img_height = img.size
+            aspect = img_height / float(img_width)
+            new_width = width
+            new_height = aspect * new_width
+            if new_height > height:
+                new_height = height
+                new_width = new_height / aspect
+            
+            # Dibujar la imagen en el PDF
+            c.drawImage(img_path, 0, height - new_height, width=new_width, height=new_height-50)
+            
+            title = img_file.split('.')[0]
+            c.setFont("Helvetica-Bold", 15)
+            c.drawString(50, height - 20, title)
+            c.showPage()  # Añadir una nueva página para la próxima imagen
+
+        c.save()
