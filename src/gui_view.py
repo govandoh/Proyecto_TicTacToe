@@ -11,10 +11,13 @@ class TicTacToeGUI:
         self.root.title("Tic Tac Toe")
         self.user_symbol = "O"
         
-        self.root.geometry('300x370+650+300')
-        self.root.overrideredirect(True)
-
         
+        self.root.geometry('300x350+800+300')
+        #Evita la barra de cerrar, minimizar, maximizar
+        self.root.overrideredirect(True)
+        
+        style = ttk.Style()
+
         messagebox.showinfo("Simbolos", "Maquina = X \n Usuario = O")
         self.controller.select_user_symbol(self.user_symbol)
 
@@ -22,7 +25,7 @@ class TicTacToeGUI:
         for i in range(3):
             row = []
             for j in range(3):
-                button = tk.Button(self.root, text=" ", font=('Arial', 20), width=5, height=2,
+                button = tk.Button(self.root, text=" ", font=('Arial', 20), width=5, height=2, background="#2596be",
                                    command=lambda r=i, c=j: self.on_button_click(r, c))
                 button.grid(row=i, column=j, padx=5, pady=5)
                 row.append(button)
@@ -30,9 +33,11 @@ class TicTacToeGUI:
         
         # Agregar el botón "Salir" al tablero
         self.quit_button = ttk.Button(self.root, text="Salir", command=self.quit_game, style="Rounded.TButton")
-        self.quit_button.grid(row=3, column=1, columnspan=3, pady=10)
+        self.quit_button.grid(row=3, column=1, columnspan=3, pady=10, padx=20)
         
-    
+        style.configure("Rounded.TButton", padding=8, relief="flat", background="#5454d4", foreground="white", font=('Arial', 12, 'bold'))
+        
+        self.root.grab_set()
         
 
     def on_button_click(self, row, col):
@@ -44,7 +49,6 @@ class TicTacToeGUI:
             result = self.check_game_status()  # Verificar el estado del juego después de cada movimiento
             if result:
                 self.show_message(result)
-
         else:
             messagebox.showwarning("Casilla Ocupada", "¡La casilla ya está ocupada! Intenta de nuevo.")
 
@@ -56,7 +60,7 @@ class TicTacToeGUI:
                 self.buttons[i][j].config(text=text)
 
     def show_message(self, message):
-        messagebox.showinfo("Tic Tac Toe - Resultado", message)
+        messagebox.showinfo("Resultado Partida", message)
 
     def start(self):
         self.root.mainloop()
@@ -65,12 +69,13 @@ class TicTacToeGUI:
     # Método para verificar si el juego ha terminado
         score = self.controller.check_game_status()
         if score is not None:
-           if score == 10:
-             self.show_message("¡La computadora ha ganado!")
-        elif score == -10:
-            self.show_message("¡Has ganado Usuario!")
-        elif score == 0:
-            self.show_message("¡Empate!")
+            if score == 10:
+                return self.show_message("¡La computadora ha ganado!")
+            elif score == -10:
+                return self.show_message("¡Has ganado Usuario!")
+            elif score == 0:
+                return self.show_message("¡Empate!")
+        
 
     # Función para salir del juego y regresar al menú principal
     def quit_game(self):
@@ -88,7 +93,6 @@ class MainMenu:
         style = ttk.Style()
         style.theme_use('clam')
 
-        button_color = "#2980B9"
 
         self.background_image = Image.open("background.jpg")
         self.background_photo = ImageTk.PhotoImage(self.background_image)
@@ -113,8 +117,12 @@ class MainMenu:
         self.quit_button = ttk.Button(self.menu_frame, text="Salir", command=self.root.destroy, style="Rounded.TButton")
         self.quit_button.pack(pady=10)
 
-        style.configure("Rounded.TButton", padding=10, relief="flat", background=button_color, foreground="white", font=('Arial', 12, 'bold'))
-        style.configure("Dark.TFrame", background="#0E4D92")  
+        style.configure("Rounded.TButton", padding=10, relief="flat", background="#5454d4", foreground="white", font=('Arial', 12, 'bold'))
+        style.configure("Dark.TFrame", background="#21003e") 
+        
+        style.map("Rounded.TButton",
+            background=[('active', '#3c3c9a')],
+            foreground=[('active', 'white')])
 
         width = self.background_image.width
         height = self.background_image.height
@@ -156,6 +164,7 @@ class MainMenu:
 
 def start_menu():
     root = tk.Tk()
+    root.maxsize(1920,1080)
     MainMenu(root)
     root.mainloop()
 
