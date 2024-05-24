@@ -3,6 +3,12 @@ from tkinter import messagebox, ttk, simpledialog
 from PIL import Image, ImageTk
 from game_controller import TicTacToeController
 
+import os
+import pyautogui
+
+# Contador global para las capturas de pantalla
+screenshot_counter = 0
+
 class TicTacToeGUI:
     def __init__(self, controller, menu_window):
         self.controller = controller
@@ -12,9 +18,13 @@ class TicTacToeGUI:
         self.user_symbol = "O"
         
         
-        self.root.geometry('300x350+800+300')
+        self.root.geometry('300x350+800+100')
         #Evita la barra de cerrar, minimizar, maximizar
         self.root.overrideredirect(True)
+        
+        global screenshot_counter  # Referencia al contador global
+        self.screenshot_counter = screenshot_counter
+
         
         style = ttk.Style()
 
@@ -46,11 +56,28 @@ class TicTacToeGUI:
             self.update_board(self.controller.board)  
             self.controller.make_computer_move()  
             self.update_board(self.controller.board)
+            self.root.after(500, self.take_screenshot)
             result = self.check_game_status()  # Verificar el estado del juego después de cada movimiento
             if result:
                 self.show_message(result)
         else:
             messagebox.showwarning("Casilla Ocupada", "¡La casilla ya está ocupada! Intenta de nuevo.")
+    
+    def take_screenshot(self):
+        global screenshot_counter  # Referencia al contador global
+        desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+        screenshot_path = os.path.join(desktop_path, f'tic_tac_toe_{screenshot_counter}.jpg')
+        screenshot_counter += 1
+        
+        x = self.root.winfo_rootx()
+        y = self.root.winfo_rooty()
+        w = self.root.winfo_width()
+        h = self.root.winfo_height()
+
+        screenshot = pyautogui.screenshot(region=(x, y, w, h))       
+        screenshot = screenshot.convert('RGB')
+        
+        screenshot.save(screenshot_path)
 
     def update_board(self, board):
         for i in range(3):
@@ -138,11 +165,37 @@ class MainMenu:
             gui.start()  
 
     def show_winning_history(self):
-        try:
-            with open("historial_ganadas.txt", "r") as file:
-                messagebox.showinfo("Historial de Partidas Ganadas", file.read())
-        except FileNotFoundError:
-            messagebox.showinfo("Historial de Partidas Ganadas", "No hay partidas ganadas registradas.")
+        desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+        screenshots = [f for f in os.listdir(desktop_path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')]
+        if not screenshots:
+            messagebox.showinfo("Historial de Partidas Ganadas", "No hay capturas de pantalla registradas.")
+        else:
+            self.show_screenshots(screenshots, desktop_path)
+    
+    def show_screenshots(self, screenshots, path):
+        screenshots = sorted([f for f in os.listdir(path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')])
+        screenshot_window = tk.Toplevel(self.root)
+        screenshot_window.title("Historial de Partidas Ganadas")
+
+
+        max_cols = min(len(screenshots),4)
+        num_rows = (len(screenshots) + max_cols -1) // max_cols
+
+        container = tk.Frame(screenshot_window)
+        container.pack(fill=tk.BOTH, expand=True)
+
+        for idx, screenshot in enumerate(screenshots):
+            img = Image.open(os.path.join(path, screenshot))
+            img = img.resize((200, 200), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            label = tk.Label(container, image=photo)
+            label.image = photo  # Keep a reference to avoid garbage collection
+       
+       
+            row = idx // max_cols
+            col = idx % max_cols
+
+            label.grid(row=row, column=col, padx=5, pady=5)
 
     def show_losing_history(self):
         try:
