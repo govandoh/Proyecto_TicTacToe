@@ -8,7 +8,7 @@ from PIL import Image
 
 import copy
 import json
-import os
+import os, glob
 import datetime
 
     
@@ -29,6 +29,8 @@ class TicTacToeController:
         self.date_format = datetime.datetime.now()
         self.game_date = self.date_format.strftime("%d-%m-%Y-%H-%M-%S")
         self.pdf = f"src/resultados/historial_movimientos_aprendizaje_{self.game_date}.pdf"
+        
+        
         
     def store_game_moves(self, current, moves, weights, best_move, best_score):
         move_history = {
@@ -110,19 +112,25 @@ class TicTacToeController:
         score = evaluate(self.board)
         if score is not None:
             if score == 10:
+                self.turn_counter = 4
+                moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), None, None)
+                self.move_history[f"{self.turn_counter}"] = moves_history  # Aquí se crea un nuevo registro en el diccionario
                 self.game_over = True
                 self.create_report()
+                self.delete_outputs()
             elif score == -10:
                 self.game_over = True
                 self.create_report()
+                self.delete_outputs()
             elif score == 0:
                 print("¡Empate!")
-                if score == 0:
-                    self.turn_counter = 5
-                    moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), None, None)
-                    self.move_history[f"{self.turn_counter}"] = moves_history  # Aquí se crea un nuevo registro en el diccionario
+                self.turn_counter = 5
+                moves_history = self.store_game_moves(self.board, self.moves.copy(), self.weigths.copy(), None, None)
+                self.move_history[f"{self.turn_counter}"] = moves_history  # Aquí se crea un nuevo registro en el diccionario
+                #if score == 0:
                 self.game_over = True
                 self.create_report()
+                self.delete_outputs()
             
         else:
             # El juego continúa, actualizar la interfaz
@@ -132,6 +140,7 @@ class TicTacToeController:
     def create_report(self):
         self.imprimir_diccionario_en_graphviz(self.move_history)
         self.combinar_imagenes_en_pdf()
+        
     
     def imprimir_diccionario_en_graphviz(self, diccionario, output_dir='output'):
     # Crear el directorio de salida si no existe
@@ -205,3 +214,13 @@ class TicTacToeController:
             c.showPage()  # Añadir una nueva página para la próxima imagen
 
         c.save()
+            
+    def delete_outputs(self, output_dir='output'):
+        img_files = [f for f in os.listdir(output_dir) if f.endswith('.png')]
+        img_files.sort()  # Asegurar que los archivos estén en el orden correcto
+        
+        for img_file in img_files:
+            # Abrir la imagen
+            img_path = os.path.join(output_dir, img_file)
+            os.remove(img_path)
+        
