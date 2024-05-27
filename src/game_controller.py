@@ -28,7 +28,7 @@ class TicTacToeController:
         self.game_over = False
         self.date_format = datetime.datetime.now()
         self.game_date = self.date_format.strftime("%d-%m-%Y-%H-%M-%S")
-        self.pdf = f"src/resultados/historial_movimientos_aprendizaje_{self.game_date}.pdf"
+        self.pdf = f"resultados/historial_movimientos_aprendizaje_{self.game_date}.pdf"
         
         
         
