@@ -227,6 +227,7 @@ class MainMenu:
         tree.column("Filename", width=350)
         tree.column("Action", width=100, anchor="center")
         
+        top.grid_rowconfigure(1,weight=1)
         
         #frame_buttons = ttk.Frame(top)
         #frame_buttons.grid(row=2, column=1, padx=10, pady=10, sticky='ew')
