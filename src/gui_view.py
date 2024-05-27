@@ -132,11 +132,14 @@ class MainMenu:
         self.new_game_button = ttk.Button(self.menu_frame, text="Nueva Partida", command=self.start_game, style="Rounded.TButton")
         self.new_game_button.pack(pady=10)
 
-        self.winning_history_button = ttk.Button(self.menu_frame, text="Historial de Partidas Ganadas", command=self.show_winning_history, style="Rounded.TButton")
+        self.winning_history_button = ttk.Button(self.menu_frame, text="Ver Partidas Ganadas", command=self.show_winning_history, style="Rounded.TButton")
         self.winning_history_button.pack(pady=10)
 
-        self.losing_history_button = ttk.Button(self.menu_frame, text="Historial de Partidas Perdidas", command=self.show_losing_history, style="Rounded.TButton")
+        self.losing_history_button = ttk.Button(self.menu_frame, text="Ver Partidas Empatadas", command=self.show_losing_history, style="Rounded.TButton")
         self.losing_history_button.pack(pady=10)
+        
+        self.history_learning = ttk.Button(self.menu_frame, text="Historial de Aprendizaje", command=self.show_history_learnings, style="Rounded.TButton")
+        self.history_learning.pack(pady=10)
 
         self.team_members_button = ttk.Button(self.menu_frame, text="Integrantes del Proyecto", command=self.show_team_members, style="Rounded.TButton")
         self.team_members_button.pack(pady=10)
@@ -203,6 +206,9 @@ class MainMenu:
                 messagebox.showinfo("Historial de Partidas Perdidas", file.read())
         except FileNotFoundError:
             messagebox.showinfo("Historial de Partidas Perdidas", "No hay partidas perdidas registradas.")
+    
+    def show_history_learnings(self):
+        pass
 
     def show_team_members(self):
         team_members = """
