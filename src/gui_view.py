@@ -10,6 +10,13 @@ import webbrowser
 # Contador global para las capturas de pantalla
 screenshot_counter = 0
 
+# Inicializa el contador de capturas de pantalla al iniciar el programa
+screenshot_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'partidas_ganadas')
+if not os.path.exists(screenshot_directory):
+    os.makedirs(screenshot_directory)
+screenshot_counter = len([f for f in os.listdir(screenshot_directory) if f.startswith('partidaGanada_') and f.endswith('.jpg')])
+
+
 class TicTacToeGUI:
     def __init__(self, controller, menu_window):
         self.controller = controller
@@ -60,7 +67,7 @@ class TicTacToeGUI:
             self.update_board(self.controller.board)  
             self.controller.make_computer_move()  
             self.update_board(self.controller.board)
-            self.root.after(500, self.take_screenshot)
+            #self.root.after(500, self.take_screenshot)
             result = self.check_game_status()  # Verificar el estado del juego después de cada movimiento
             if result:
                 self.show_message(result)
@@ -69,8 +76,15 @@ class TicTacToeGUI:
     
     def take_screenshot(self):
         global screenshot_counter  # Referencia al contador global
-        desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
-        screenshot_path = os.path.join(desktop_path, f'tic_tac_toe_{screenshot_counter}.jpg')
+        #desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+        screenshots_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'partidas_ganadas')
+        #screenshot_path = os.path.join(desktop_path, f'tic_tac_toe_{screenshot_counter}.jpg')
+        
+        # Crear la carpeta si no existe
+        if not os.path.exists(screenshots_directory):
+           os.makedirs(screenshots_directory)
+        screenshot_path = os.path.join(screenshots_directory, f'partidaGanada_{screenshot_counter}.jpg')
+         
         screenshot_counter += 1
         
         x = self.root.winfo_rootx()
@@ -82,6 +96,7 @@ class TicTacToeGUI:
         screenshot = screenshot.convert('RGB')
         
         screenshot.save(screenshot_path)
+
 
     def update_board(self, board):
         for i in range(3):
@@ -101,6 +116,7 @@ class TicTacToeGUI:
         score = self.controller.check_game_status()
         if score is not None:
             if score == 10:
+                self.root.after(1000, self.take_screenshot)
                 return self.show_message("¡La computadora ha ganado!")
             elif score == -10:
                 return self.show_message("¡Has ganado Usuario!")
@@ -172,21 +188,30 @@ class MainMenu:
             gui.start()  
 
     def show_winning_history(self):
-        desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
-        screenshots = [f for f in os.listdir(desktop_path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')]
+        #desktop_path = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+        screenshots_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'partidas_ganadas')
+
+        # screenshots = [f for f in os.listdir(desktop_path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')]
+        # if not screenshots:
+        #     messagebox.showinfo("Historial de Partidas Ganadas", "No hay capturas de pantalla registradas.")
+        # else:
+        #     self.show_screenshots(screenshots, desktop_path)
+
+        screenshots = [f for f in os.listdir(screenshots_directory) if f.startswith('partidaGanada_') and f.endswith('.jpg')]
         if not screenshots:
-            messagebox.showinfo("Historial de Partidas Ganadas", "No hay capturas de pantalla registradas.")
+           messagebox.showinfo("Historial de Partidas Ganadas", "No hay capturas de pantalla registradas.")
         else:
-            self.show_screenshots(screenshots, desktop_path)
+            self.show_screenshots(screenshots, screenshots_directory)
     
     def show_screenshots(self, screenshots, path):
-        screenshots = sorted([f for f in os.listdir(path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')])
+        #screenshots = sorted([f for f in os.listdir(path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')])
+        screenshots = sorted([f for f in os.listdir(path) if f.startswith('partidaGanada_') and f.endswith('.jpg')],key=lambda x: int(x.split('_')[1].split('.')[0]), reverse=True)
         screenshot_window = tk.Toplevel(self.root)
         screenshot_window.title("Historial de Partidas Ganadas")
 
 
-        max_cols = min(len(screenshots),4)
-        num_rows = (len(screenshots) + max_cols -1) // max_cols
+        #max_cols = min(len(screenshots),4)
+        #num_rows = (len(screenshots) + max_cols -1) // max_cols
 
         container = tk.Frame(screenshot_window)
         container.pack(fill=tk.BOTH, expand=True)
@@ -197,12 +222,15 @@ class MainMenu:
             photo = ImageTk.PhotoImage(img)
             label = tk.Label(container, image=photo)
             label.image = photo  # Keep a reference to avoid garbage collection
+            label_text = tk.Label(container, text=f"Partida Ganada No.{idx + 1}", font=("Arial", 12))
        
-       
-            row = idx // max_cols
-            col = idx % max_cols
+            # row = idx // max_cols
+            # col = idx % max_cols
 
-            label.grid(row=row, column=col, padx=5, pady=5)
+            # label.grid(row=row, column=col, padx=5, pady=5)
+            label.grid(row=idx, column=0, padx=5, pady=5)
+            label_text.grid(row=idx, column=1, padx=5, pady=5)
+
 
     def show_losing_history(self):
         try:
