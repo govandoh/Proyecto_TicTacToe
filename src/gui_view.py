@@ -204,30 +204,37 @@ class MainMenu:
             self.show_screenshots(screenshots, screenshots_directory)
     
     def show_screenshots(self, screenshots, path):
-        #screenshots = sorted([f for f in os.listdir(path) if f.startswith('tic_tac_toe_') and f.endswith('.jpg')])
         screenshots = sorted([f for f in os.listdir(path) if f.startswith('partidaGanada_') and f.endswith('.jpg')],key=lambda x: int(x.split('_')[1].split('.')[0]), reverse=True)
         screenshot_window = tk.Toplevel(self.root)
         screenshot_window.title("Historial de Partidas Ganadas")
 
-
-        #max_cols = min(len(screenshots),4)
-        #num_rows = (len(screenshots) + max_cols -1) // max_cols
-
         container = tk.Frame(screenshot_window)
         container.pack(fill=tk.BOTH, expand=True)
+
+        canvas = tk.Canvas(container)
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
 
         for idx, screenshot in enumerate(screenshots):
             img = Image.open(os.path.join(path, screenshot))
             img = img.resize((200, 200), Image.LANCZOS)
             photo = ImageTk.PhotoImage(img)
-            label = tk.Label(container, image=photo)
+            label = tk.Label(scrollable_frame, image=photo)
             label.image = photo  # Keep a reference to avoid garbage collection
-            label_text = tk.Label(container, text=f"Partida Ganada No.{idx + 1}", font=("Arial", 12))
-       
-            # row = idx // max_cols
-            # col = idx % max_cols
-
-            # label.grid(row=row, column=col, padx=5, pady=5)
+            label_text = tk.Label(scrollable_frame, text=f"Partida Ganada No.{idx + 1}", font=("Arial", 12))
             label.grid(row=idx, column=0, padx=5, pady=5)
             label_text.grid(row=idx, column=1, padx=5, pady=5)
 
