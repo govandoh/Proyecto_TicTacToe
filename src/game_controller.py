@@ -184,6 +184,9 @@ class TicTacToeController:
     
     def combinar_imagenes_en_pdf(self, output_dir='output'):
     # Crear un documento PDF
+        if not os.path.exists('resultados'):
+            os.makedirs('resultados')
+        
         c = canvas.Canvas(self.pdf, pagesize=letter)
 
         # Obtener la lista de archivos de imagen en el directorio de salida
