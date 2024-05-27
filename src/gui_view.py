@@ -5,6 +5,7 @@ from game_controller import TicTacToeController
 
 import os
 import pyautogui
+import webbrowser
 
 # Contador global para las capturas de pantalla
 screenshot_counter = 0
@@ -20,7 +21,7 @@ class TicTacToeGUI:
         
         self.root.geometry('300x350+800+100')
         #Evita la barra de cerrar, minimizar, maximizar
-        self.root.overrideredirect(True)
+        #self.root.overrideredirect(True)
         
         global screenshot_counter  # Referencia al contador global
         self.screenshot_counter = screenshot_counter
@@ -48,6 +49,9 @@ class TicTacToeGUI:
         style.configure("Rounded.TButton", padding=8, relief="flat", background="#5454d4", foreground="white", font=('Arial', 12, 'bold'))
         
         self.root.grab_set()
+        self.root.focus_force()
+        self.root.protocol("WM_DELETE_WINDOW", self.quit_game)
+
         
 
     def on_button_click(self, row, col):
@@ -208,7 +212,46 @@ class MainMenu:
             messagebox.showinfo("Historial de Partidas Perdidas", "No hay partidas perdidas registradas.")
     
     def show_history_learnings(self):
-        pass
+        top = tk.Toplevel(self.root)
+        top.title("Historial Aprendizajes")
+        top.geometry('500x500+700+150')
+        self.directory = 'resultados'
+        
+        #Creamos el TreeView
+        tree = ttk.Treeview(top, columns=("Filename", "Action"), show="headings")
+        tree.heading("Filename", text="Nombre del Archivo")
+        tree.heading("Action", text="Double click")
+        tree.grid(row=1, column=1, padx=25, pady= 20, sticky='nsew')
+        
+        #Configuramos las columnas
+        tree.column("Filename", width=350)
+        tree.column("Action", width=100, anchor="center")
+        
+        
+        #frame_buttons = ttk.Frame(top)
+        #frame_buttons.grid(row=2, column=1, padx=10, pady=10, sticky='ew')
+
+        
+        def load_files(directory):
+            for filename in os.listdir(directory):
+                if filename.endswith(".pdf"):
+                    filepath = os.path.join(directory,filename)
+                    tree.insert("","end",values=(filename,"Open"), tags=(filepath,))
+                    
+        load_files(self.directory)
+
+        def on_tree_select(event):
+            item =  tree.selection()[0]
+            filepath = tree.item(item, "tags")[0]
+            self.open_pdf(filepath)
+        
+        tree.bind("<Double-1>", on_tree_select)
+    
+    def open_pdf(self, file_path):
+        webbrowser.open(file_path)
+    
+    
+        
 
     def show_team_members(self):
         team_members = """
