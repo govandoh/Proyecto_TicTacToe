@@ -16,4 +16,4 @@ Participación: **%**
 
 Nombre: **Jaqueline Mariela Figueróa Coronado**
 Carnet: **9490-21-4689**
-Participación: **%**
+Participación: **100%**
