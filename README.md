@@ -8,7 +8,7 @@ Participación: **100%**
 
 Nombre: **Nery Otoniel Colorado Menchú**
 Carnet: **9490-22-4867**
-Participación: **%**
+Participación: **100%**
 
 Nombre: **Javier David Pirir Gómez**
 Carnet: **9490-22-15282**
