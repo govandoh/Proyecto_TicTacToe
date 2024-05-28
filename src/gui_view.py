@@ -207,7 +207,7 @@ class MainMenu:
         screenshots = sorted([f for f in os.listdir(path) if f.startswith('partidaGanada_') and f.endswith('.jpg')],key=lambda x: int(x.split('_')[1].split('.')[0]), reverse=True)
         screenshot_window = tk.Toplevel(self.root)
         screenshot_window.title("Historial de Partidas Ganadas")
-        screenshot_window.geometry('400x700+700+150')
+        screenshot_window.geometry('450x750+700+150')
         screenshot_window.resizable(False,False)
         
 
