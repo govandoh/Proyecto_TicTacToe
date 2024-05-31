@@ -12,7 +12,7 @@ Participación: **100%**
 
 Nombre: **Javier David Pirir Gómez**
 Carnet: **9490-22-15282**
-Participación: **%**
+Participación: **100%**
 
 Nombre: **Jaqueline Mariela Figueróa Coronado**
 Carnet: **9490-21-4689**
