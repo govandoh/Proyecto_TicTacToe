@@ -198,7 +198,7 @@ class MainMenu:
             self.show_screenshots(screenshots, screenshots_directory, "Empatada")
     
     def show_screenshots(self, screenshots, path, tipo):
-        screenshots = sorted(screenshots, key=lambda x: int(x.split('_')[1].split('.')[0]), reverse=True)
+        screenshots = sorted(screenshots, key=lambda x: int(x.split('_')[1].split('.')[0]), reverse=False)
         screenshot_window = tk.Toplevel(self.root)
         screenshot_window.title(f"Historial de Partidas {tipo}s")
         screenshot_window.geometry('500x750+700+150')  # Aumenta el ancho para acomodar la scrollbar
